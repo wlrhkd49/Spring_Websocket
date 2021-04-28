@@ -18,5 +18,5 @@ public class ChatRoom {
         return chatRoom;
     }
 
-    // 채팅방 DTO가 관소화 됐음을 확인하기.
+    // 채팅방 DTO가 간소화 됐음을 확인하기.
 }

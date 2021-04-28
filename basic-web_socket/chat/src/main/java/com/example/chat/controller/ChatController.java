@@ -1,25 +1,30 @@
 package com.example.chat.controller;
 
-import com.example.chat.model.ChatRoom;
-import com.example.chat.service.ChatService;
+import com.example.chat.model.ChatMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import java.util.*;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/chat")
+// publisher 구현
 public class ChatController {
 
-    private final ChatService chatService;
+    private final SimpMessageSendingOperations messagingTemplate;
 
-    @PostMapping
-    public ChatRoom createRoom(@RequestParam String name) {
-        return chatService.createRoom(name);
+    @MessageMapping("/chat/message") //websocket 으로 들어오는 메세지 발행을 처리.
+    public void message(ChatMessage message) {
+        if(ChatMessage.MessageType.ENTER.equals(message.getType()))
+            message.setMessage(message.getSender() + "님이 입장하셨습니다.");
+        // /sub/chat/room/{roomId} 구독하고 있다가 메시지가 전달되면 화면에 출력.
+        // /sub/chat/room/{roomId} 채팅룸을 구분하는 값
+        // pub/sub에서 Topic의 역할
+        messagingTemplate.convertAndSend("/sub/chat/room/"
+                + message.getRoomId(), message);
     }
 
-    @GetMapping
-    public List<ChatRoom> findAllRoom() {
-        return chatService.findAllRoom();
-    }
+
+
+
 }
