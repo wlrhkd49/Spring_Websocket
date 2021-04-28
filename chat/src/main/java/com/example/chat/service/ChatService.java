@@ -18,9 +18,11 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+//채팅방을 생성, 조회하고 하나의 세션에 메세지 발송을 하는 서비스
 public class ChatService {
 
     private final ObjectMapper objectMapper;
+    //서버에 생성된 모든 채팅방의 정보를 모아둔 구조체.
     private Map<String, ChatRoom> chatRooms;
 
     @PostConstruct
@@ -32,10 +34,12 @@ public class ChatService {
         return new ArrayList<>(chatRooms.values());
     }
 
+    // 채팅방 Map에 담긴 정보를 조회
     public ChatRoom findRoomById(String roomId) {
         return chatRooms.get(roomId);
     }
 
+    //RandomUUID로 구별 ID를 가진 채팅방 객체를 생성하고 채팅방 Map에 추가
     public ChatRoom createRoom(String name) {
         String randomId = UUID.randomUUID().toString();
         ChatRoom chatRoom = ChatRoom.builder()
@@ -46,6 +50,7 @@ public class ChatService {
         return chatRoom;
     }
 
+    // 지정한 Websocket 세션에 메세지를 발송.
     public <T> void sendMessage(WebSocketSession session, T message) {
         try {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
