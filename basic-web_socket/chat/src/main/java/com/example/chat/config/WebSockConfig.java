@@ -2,24 +2,31 @@ package com.example.chat.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.config.annotation.*;
 
 @RequiredArgsConstructor
 @Configuration
-@EnableWebSocket //웹소켓 활성화.
-public class WebSockConfig implements WebSocketConfigurer {
-
-    private final WebSocketHandler webSocketHandler;
+@EnableWebSocketMessageBroker //Stomp 사용
+public class WebSockConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        //endpoint는 /ws/chat으로 설정 다른 서버에서도 접속 하능하도록 setAllowedOrigin
-        registry.addHandler(webSocketHandler, "/ws/chat").setAllowedOrigins("*");
-        // 웹소켓에 접속하기 위한 endpoint는 /ws/chat으로 설정
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        //메세지 구동 요청의 prefix /sub로 시작 설정
+        config.enableSimpleBroker("/sub");
+
+        // 메세지를 발행하는 요청의 prefix는 /pub로 시작 설정
+        config.setApplicationDestinationPrefixes("/pub");
+    }
+
+    @Override
+
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // stomp websocket의 연결 endpoint는 /ws-stomp로 설정
         // 도메인이 다른 서버에서도 접속 가능하도록 setAllowedOrigin("*")설정
-        // ws://localhost:8080/ws/chat으로 커넥션을 연결하고 메세지 통신 준비
+        // 개발서버의 접속 주소 ws://localhost:8080/ws-stomp
+        registry.addEndpoint("/ws-stomp").setAllowedOrigins("*")
+                .withSockJS();
     }
 }

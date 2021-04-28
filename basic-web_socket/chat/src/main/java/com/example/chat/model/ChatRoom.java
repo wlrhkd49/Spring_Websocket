@@ -1,40 +1,22 @@
 package com.example.chat.model;
 
-import com.example.chat.service.ChatService;
-import lombok.Builder;
 import lombok.Data;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.UUID;
 
 @Data
 public class ChatRoom {
     private String roomId;
     private String name;
-    // 입장한 클라이언트들의 정보
-    private Set<WebSocketSession> sessions = new HashSet<>();
 
-
-    @Builder
-    public ChatRoom(String roomId, String name) {
-        this.roomId = roomId;
-        this.name =name;
+    //pub/sub 방식을 사용하면 구독자 관리가 알아서 되므로 웹소켓 세션관리가 필요없음.
+    //발송의 구현도 알아서 해결되므로 일일이 클라이언트에게 메세지를 발송하는 구현이 필요없음.
+    public static ChatRoom create(String name) {
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.roomId = UUID.randomUUID().toString(); //랜덤 방번호 설정
+        chatRoom.name = name;
+        return chatRoom;
     }
 
-    // 입장 기능 분기 처리.
-    public void handleActions(WebSocketSession session, ChatMessage chatMessage, ChatService chatService) {
-        if(chatMessage.getType().equals(ChatMessage.MessageType.ENTER)) {
-            sessions.add(session); //채팅룸의 세션정보에 클라이언트의 세션 리스트 추가
-            chatMessage.setMessage(chatMessage.getSender() + "님이 입장");
-        }
-        sendMessage(chatMessage, chatService);
-        //입장시
-    }
-
-    // 대화하기 분기 처리.
-    public <T> void sendMessage(T message, ChatService chatService) {
-        sessions.parallelStream().forEach(session -> chatService.sendMessage(session,message));
-        // 채팅룸에 메세지가 도착하는 경우 채팅룸의 모든 세션에 메세지를 발송.
-    }
+    // 채팅방 DTO가 관소화 됐음을 확인하기.
 }
